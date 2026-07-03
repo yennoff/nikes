@@ -9,7 +9,7 @@
   <body>
     <main class="page">
       <div class="player-shell">
-        <video id="player" autoplay playsinline preload="metadata">
+        <video id="player" autoplay playsinline muted webkit-playsinline preload="metadata">
           <source src="https://aodp-ssl.itunes.apple.com/itunes-assets/FuseSocial123/v4/a0/a6/7f/a0a67f42-3c16-09a4-8cd2-997506e4a2b2/mzvf_16137479190702305531.640x480.h264lc.U.f.m4v?accessKey=1785682909_1767533708386276264_%2BMvdh0W14fTj56E2soTYpSE0YVy%2BYQIsJM0%2FmsWLS0e2m6p3PE6ffeiVMvXTFqC1%2BXl5AOJ9L7Aa5R2gq%2Bfv9N5EBB%2BsQOQ9%2FKXfHW7NOkaFwOY80vLnLYJPT0LJ5fL1PYq2ncOtzSszaU6PduLF7FP4CRsUoaMdT2Jt6qXR6GSSQFRA1%2FWELgzzaO1%2FBEOp%2FuoCU75bkAHRrMA03ZrMRw%3D%3D" type="video/mp4" />
           <!-- Local MP4 fallback for testing -->
           <source src="nikes.mp4" type="video/mp4" />
@@ -23,6 +23,9 @@
             const video = document.getElementById('player');
 
             if (!remoteSrc) return;
+
+            // Ensure muted for silent autoplay on mobile/desktop browsers
+            try { video.muted = true; } catch (e) {}
 
             // Remote file appears to be an MP4 (not HLS). Use it directly.
             video.src = remoteSrc;
@@ -39,7 +42,8 @@
                   video.requestFullscreen().catch(()=>{});
                 }
               } catch (err) {
-                // Autoplay with sound was blocked by the browser; nothing shown per request
+                // Autoplay with sound was blocked; enable controls so user can play
+                try { video.controls = true; } catch (e) {}
               }
             }
 
@@ -48,6 +52,8 @@
               try { video.muted = false; } catch (e) {}
               try { video.volume = 1; } catch (e) {}
               video.play().catch(()=>{});
+              // Try to enter fullscreen on user gesture
+              try { video.requestFullscreen && video.requestFullscreen().catch(()=>{}); } catch (e) {}
             }
             document.addEventListener('pointerdown', handleFirstInteraction, { once: true, capture: true });
             document.addEventListener('keydown', handleFirstInteraction, { once: true, capture: true });
